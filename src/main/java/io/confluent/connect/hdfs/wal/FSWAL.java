@@ -42,10 +42,17 @@ public class FSWAL implements WAL {
   private String logFile = null;
   private Configuration conf = null;
   private Storage storage = null;
+  private boolean appendIfExists = true;
 
   public FSWAL(String logsDir, TopicPartition topicPart, Storage storage)
+          throws ConnectException {
+      this(logsDir, topicPart, storage, true);
+  }
+
+  public FSWAL(String logsDir, TopicPartition topicPart, Storage storage, boolean appendIfExists)
       throws ConnectException {
     this.storage = storage;
+    this.appendIfExists = appendIfExists;
     this.conf = storage.conf();
     String url = storage.url();
     logFile = FileUtils.logFileName(url, logsDir, topicPart);
@@ -71,7 +78,7 @@ public class FSWAL implements WAL {
       try {
         if (writer == null) {
           writer = WALFile.createWriter(conf, Writer.file(new Path(logFile)),
-                                        Writer.appendIfExists(true));
+                                        Writer.appendIfExists(appendIfExists));
           log.info("Successfully acquired lease for {}", logFile);
         }
         break;

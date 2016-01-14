@@ -30,6 +30,8 @@ import io.confluent.connect.hdfs.wal.FSWAL;
 import io.confluent.connect.hdfs.wal.WAL;
 
 public class HdfsStorage implements Storage {
+    
+  public static final String DFS_SUPPORT_APPEND_KEY = "dfs.support.append";
 
   private final FileSystem fs;
   private final Configuration conf;
@@ -86,7 +88,7 @@ public class HdfsStorage implements Storage {
 
   @Override
   public WAL wal(String topicsDir, TopicPartition topicPart) {
-    return new FSWAL(topicsDir, topicPart, this);
+    return new FSWAL(topicsDir, topicPart, this, conf().getBoolean(DFS_SUPPORT_APPEND_KEY, true));
   }
 
   @Override
