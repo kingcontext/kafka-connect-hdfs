@@ -39,7 +39,7 @@ public class FSWAL implements WAL {
 
   private WALFile.Writer writer = null;
   private WALFile.Reader reader = null;
-  private String logFile = null;
+  private String logFile, logDir = null;
   private Configuration conf = null;
   private Storage storage = null;
   private boolean appendIfExists = true;
@@ -55,6 +55,7 @@ public class FSWAL implements WAL {
     this.appendIfExists = appendIfExists;
     this.conf = storage.conf();
     String url = storage.url();
+    logDir = FileUtils.directoryName(url, logsDir, topicPart);
     logFile = FileUtils.logFileName(url, logsDir, topicPart);
   }
 
@@ -77,6 +78,9 @@ public class FSWAL implements WAL {
     while (sleepIntervalMs < MAX_SLEEP_INTERVAL_MS) {
       try {
         if (writer == null) {
+	      if (!storage.exists(logDir)) {
+	        storage.mkdirs(logDir);	
+	      }
           writer = WALFile.createWriter(conf, Writer.file(new Path(logFile)),
                                         Writer.appendIfExists(appendIfExists));
           log.info("Successfully acquired lease for {}", logFile);
